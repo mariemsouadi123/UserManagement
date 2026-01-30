@@ -17,7 +17,7 @@ pipeline {
         }
 
         // -----------------------
-        stage("Build Backend Image") {
+        stage("Build Image") {
             steps {
                 script {
                     // Build the Spring Boot Docker image
