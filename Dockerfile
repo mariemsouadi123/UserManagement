@@ -22,11 +22,11 @@ FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-# Copy jar from build stage
-COPY --from=build /app/target/usermanagement-0.0.1-SNAPSHOT.jar app.jar
+# Copy the JAR from build stage
+COPY --from=build /app/target/Usermanagement-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose port 8080
+# Expose port
 EXPOSE 8081
 
 # Run the app
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
