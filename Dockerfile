@@ -1,32 +1,17 @@
-# ========================
-# Stage 1: Build
-# ========================
-FROM maven:3.9.1-eclipse-temurin-17 AS build
+# Use Maven + JDK to build and run in one image
+FROM maven:3.9.1-eclipse-temurin-17
 
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
+# Copy pom.xml and source code
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Copy source code
 COPY src ./src
 
-# Build the app
+# Build the Spring Boot jar
 RUN mvn clean package -DskipTests
 
-# ========================
-# Stage 2: Run
-# ========================
-FROM eclipse-temurin:17-jdk
-
-WORKDIR /app
-
-# Copy the JAR from build stage
-COPY --from=build /app/target/Usermanagement-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose port
+# Expose the port your app uses
 EXPOSE 8081
 
-# Run the app
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the jar
+CMD ["java", "-jar", "target/Usermanagement-0.0.1-SNAPSHOT.jar"]
