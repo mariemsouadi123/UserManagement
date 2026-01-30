@@ -4,11 +4,11 @@ pipeline {
     environment {
         DOCKERHUB_USER = "mariemsouadi12189"
         BACKEND_IMAGE  = "usermanagement"  // Docker image name
+        IMAGE_TAG      = "latest"          // fixed tag to reuse
     }
 
     stages {
 
-        // -----------------------
         stage("Checkout Code") {
             steps {
                 git branch: 'master',
@@ -16,20 +16,18 @@ pipeline {
             }
         }
 
-        // -----------------------
-        stage("Build Image") {
+        stage("Build Docker Image") {
             steps {
                 script {
-                    // Build the Spring Boot Docker image
+                    // Build Docker image with cache
                     docker.build(
-                        "${DOCKERHUB_USER}/${BACKEND_IMAGE}:${BUILD_NUMBER}",
+                        "${DOCKERHUB_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}",
                         "."
                     )
                 }
             }
         }
 
-        // -----------------------
         stage("Push Docker Image") {
             steps {
                 withCredentials([
@@ -42,18 +40,12 @@ pipeline {
                     sh """
                         echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
 
-                        # Tag with build number and latest
-                        docker tag ${DOCKERHUB_USER}/${BACKEND_IMAGE}:${BUILD_NUMBER} ${DOCKERHUB_USER}/${BACKEND_IMAGE}:latest
-
-                        # Push images
-                        docker push ${DOCKERHUB_USER}/${BACKEND_IMAGE}:${BUILD_NUMBER}
-                        docker push ${DOCKERHUB_USER}/${BACKEND_IMAGE}:latest
+                        docker push ${DOCKERHUB_USER}/${BACKEND_IMAGE}:${IMAGE_TAG}
                     """
                 }
             }
         }
 
-        // -----------------------
         stage("Deploy to Kubernetes") {
             steps {
                 withCredentials([
@@ -62,11 +54,9 @@ pipeline {
                     sh """
                         export KUBECONFIG=\$KUBECONFIG_FILE
 
-                        # Apply Kubernetes manifests
                         kubectl apply -f k8s/usermanagement-deployment.yaml
                         kubectl apply -f k8s/usermanagement-service.yaml
 
-                        # Wait for rollout
                         kubectl rollout status deployment/usermanagement-deployment -n default
                     """
                 }
@@ -75,11 +65,7 @@ pipeline {
     }
 
     post {
-        success {
-            echo "✅ Pipeline successful!"
-        }
-        failure {
-            echo "❌ Pipeline failed!"
-        }
+        success { echo "✅ Pipeline successful!" }
+        failure { echo "❌ Pipeline failed!" }
     }
 }
