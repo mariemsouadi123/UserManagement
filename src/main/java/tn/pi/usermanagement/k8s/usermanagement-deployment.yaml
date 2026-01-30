@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usermanagement-deployment
+  labels:
+    app: usermanagement
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: usermanagement
+  template:
+    metadata:
+      labels:
+        app: usermanagement
+    spec:
+      containers:
+        - name: user
+          image: mariemsouadi12189/usermanagement:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+
